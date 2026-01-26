@@ -1,5 +1,5 @@
 # Python
-*.parquet
+#*.parquet
 
 __pycache__/
 *.pyc
