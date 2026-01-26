@@ -1,0 +1,25 @@
+# Python
+*.parquet
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+
+# PyCharm
+.idea/
+
+# Environment variables
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
