@@ -12,14 +12,14 @@ WORKDIR /code
 ENV PATH="/app/.venv/bin:$PATH"
 
 # Copy dependency files first (better layer caching)
-COPY pyproject.toml .python-version ./
+COPY pyproject.toml uv.lock .python-version ./
 # COPY "pyproject.toml" "uv.lock" ".python-version" ./
 # Install dependencies from lock file (ensures reproducible builds)
 
 RUN uv sync --locked
 # copy the script to the container. 1st name is source file, 2nd is destination
-#COPY pipeline.py .
+COPY pipeline.py .
 
 # define what to do first when the container runs
 # in this example, we will just run the script
-#ENTRYPOINT ["uv", "run", "python", "pipeline.py"]
+ENTRYPOINT ["uv", "run", "python", "pipeline.py"]
