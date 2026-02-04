@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "kestra-sandbox-486404",
+  "private_key_id": "80d416d57db95d0e62786c38f03b7524277749de",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvwIBADANBgkqhkiG9w0BAQEFAASCBKkwggSlAgEAAoIBAQDIToFa1PEUXpr+\nUYMba8IR2heUlUxIHtFytnRNb8epj83OSu57ACh/YcNLcH8ZtXFj2jdKXA1VsnHA\nwKtfcyiY3o82W0aDZkwCS9zwSE7rOUT+72bVtJDcogvaoUad0Bm1dAfab/3tn508\nsNPdvGyNcu3IXORMS7FZR7Q6sjdcTnF0BDO6xmE95POy+qBhAldGJ76ElbuJ8Gd+\n664haA8SbV6+KsZnRVyHrSJkGOuUsKhRsNEEahBHfGGxuq176dsskZB0ujT5iW4F\n1yz9AkWh6/Y0Wij5mZgnwSRWaJTm7nPXB8g+luYZ9avM2XstZrndmyX8ROFeMXfF\nredSDviRAgMBAAECggEAEAdKLhbKmM7uN6oVo/DWRX/ucZ8VzNKcf4GuolCuyTh+\n50JTPYf4daMA0e1VWl0Mzwjz8jEWBxTBqgMw43EvXzY1/wtEQ/kAXZGtAxRCLmv1\ng7HsCG9LxT/5U1wi7rdrizvW8gmSp/xlBGmA9qYgiJwY/3bBdQJ8lVCZ0TWYHPxs\ntWcXlJLJMEl4FYIboqoYG1EOffKSVfcShqVM7Mb78iYV4k2pglfhqi71B4IMm9Qy\nD0RijkhlGCU56+dpKskEkOk48BqRxoAQZhXB4eSKT6yJxwSi93pGqdm01mKA0zRp\nek8VBZHQgfjIVXAaiIGIra7/zmt0XfCTx5GO/pFMXQKBgQDjasAzbSF89rkInr4I\n5Lu9K11/kHvvcve+rNthBDY55iDA19OR/Q4ZbMONqoo2B2Qxc8zQ21f1NXLOtFky\nZC5gT6YlHWdceBN/jWoebzoIm0+mLidUJAU0yEOSH0GYrFLF0gVOo3n7FeVzt4OD\nG6aBDylfPmgIfBEAG6TuVed5BQKBgQDhe3d6UknAuYOMVFvHGo+E1nPmnzUuV1CA\nzkO5ipgmqe+x9MNpxRQs+fTC8Ua/6CEVyXnu+B+fE9PyfZ1fsp1OnYTN+AYBCADw\nLxLDIHOkwp4+QK7+d93fcXw+dL2bZ9xQiiBSWde0zfx1VfuNWoTj2EjFnFN0XYwI\nmiQvIJSnHQKBgQDJeK1F4gyk9L8AUAHzRxC7ikuO06W4gJXTKrg/vsd7i9DAh3Q8\nBYAULjMgslE3hFzTIs/0yB2ocu1/Cm9rIS2kzWtXvjDvzsEXY2T8CXXUYiOyCXl2\nJWMnW7PhJCes5h1+e42QGWvbcY6Rcabk4/4ioBf69QKdYax99/+p1hj3MQKBgQCW\nS9oj6t3GXOHWlBRo7sdjYB75Rn4IWaMLeHGkJ0Gr4/IlyGTJB9ie8i24E2N5X51O\nDHH+W92YB3trU1enBkPctxpiwEQgQ9l8P6Rd9C+hTyhzjmIWtIdr/RU3/FC2WdB8\nztUkj0Y8+mChRaLbYc7aoLxBHCZ0ljZVNYmQ8EKl8QKBgQC71dL7WfhCxv+GTeEH\nCXfvVblrXI4zu6eMCvs7HhJxRC0utFO835yS5ueG2qrNAcZZsek+5qYGdLZm5Orb\nA7Xkv2rRvVzHQfmgpuLrHoHhD8ObPfx7YHunkOHpVXXEZYsZWI2QIwoIKrOY1DNG\nvqi6qzxmE9lUodkG3PQ91EDjSw==\n-----END PRIVATE KEY-----\n",
+  "client_email": "adil-zoomcamp@kestra-sandbox-486404.iam.gserviceaccount.com",
+  "client_id": "112351131786341905673",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/adil-zoomcamp%40kestra-sandbox-486404.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
