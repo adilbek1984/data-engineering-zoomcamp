@@ -40,5 +40,7 @@ SELECT COUNT(DISTINCT PULocationID) FROM `kestra-sandbox-486404.zoomcamp.yellow_
 
 SELECT PULocationID FROM `kestra-sandbox-486404.zoomcamp.yellow_tripdata_2024`;
 
+SELECT PULocationID, DOLocationID FROM `kestra-sandbox-486404.zoomcamp.yellow_tripdata_2024`;
+
 --Answer: BigQuery is a columnar database, and it only scans the specific columns requested in the query.
         --Querying two columns (PULocationID, DOLocationID) requires reading more data than querying one column (PULocationID), leading to a higher estimated number of bytes processed.
