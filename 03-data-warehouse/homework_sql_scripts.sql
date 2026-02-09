@@ -85,7 +85,12 @@ WHERE DATE(tpep_dropoff_datetime) BETWEEN '2024-03-01' AND '2024-03-15';
 --Answer: GCP Bucket
 
 
---Question 9. Understanding table scans. Write a SELECT count(*) query FROM the materialized table you created. How many bytes does it estimate will be read? Why?
+--Question 8. Clustering best practices. It is best practice in Big Query to always cluster your data:
+
+--Answer: False
+
+
+-Question 9. Understanding table scans. Write a SELECT count(*) query FROM the materialized table you created. How many bytes does it estimate will be read? Why?
 
 SELECT COUNT(*) FROM kestra-sandbox-486404.zoomcamp.yellow_tripdata_2024;
 
