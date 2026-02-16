@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+    - name: staging
+      database: kestra-sandbox-486404
+      schema: zoomcamp
+
+      tables:
+        - name: green_tripdata
+        - name: yellow_tripdata
