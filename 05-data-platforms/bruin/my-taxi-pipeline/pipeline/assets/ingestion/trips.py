@@ -69,13 +69,17 @@ def materialize():
     all_dfs = []
     errors = []
 
+    headers = {
+        "User-Agent": "Mozilla/5.0 (compatible; BruinPipeline/1.0)"
+    }
+
     for taxi_type in taxi_types:
         for year, month in months:
             url = f"{BASE_URL}/{taxi_type}_tripdata_{year}-{month:02d}.parquet"
             logger.info(f"Fetching {url}")
 
             try:
-                r = requests.get(url, timeout=300)
+                r = requests.get(url, headers=headers, timeout=300)
                 r.raise_for_status()
 
                 df = safe_read_parquet(r.content)
@@ -93,7 +97,8 @@ def materialize():
                 errors.append(msg)
 
     if not all_dfs:
-        raise ValueError("No data fetched.\n" + "\n".join(errors))
+        logger.warning("No data fetched for interval. Returning empty dataframe.")
+        return pd.DataFrame()
 
     combined = pd.concat(all_dfs, ignore_index=True)
 
