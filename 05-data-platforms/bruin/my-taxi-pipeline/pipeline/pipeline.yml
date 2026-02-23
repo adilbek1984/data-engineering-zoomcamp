@@ -10,7 +10,7 @@
 name: nyc_taxi
 
 # TODO: Pick a schedule ("daily", "hourly", "weekly", "monthly") or a cron string.
-schedule: "daily"
+schedule: "monthly"
 
 # TODO: Set the earliest date this pipeline should consider for full refresh backfills.
 # Format: YYYY-MM-DD
