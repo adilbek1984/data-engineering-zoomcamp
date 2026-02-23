@@ -79,7 +79,16 @@ def materialize():
             logger.info(f"Fetching {url}")
 
             try:
+                # r = requests.get(url, headers=headers, timeout=300)
+                headers = {
+                      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                      "Accept": "application/octet-stream,application/parquet,*/*",
+                      "Accept-Language": "en-US,en;q=0.9",
+                      "Connection": "keep-alive",
+                }
+
                 r = requests.get(url, headers=headers, timeout=300)
+
                 r.raise_for_status()
 
                 df = safe_read_parquet(r.content)
