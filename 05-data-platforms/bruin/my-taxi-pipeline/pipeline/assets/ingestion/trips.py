@@ -7,7 +7,7 @@ connection: duckdb-default
 
 materialization:
   type: table
-  strategy: append
+  strategy: create_if_needed # append, replace, create_if_needed
 
 @bruin"""
 
