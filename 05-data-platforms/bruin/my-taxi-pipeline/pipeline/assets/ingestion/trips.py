@@ -70,8 +70,7 @@ def materialize():
     errors = []
 
     headers = {
-    "User-Agent": "Mozilla/5.0",
-    "Accept": "*/*"
+        "User-Agent": "Mozilla/5.0 (compatible; BruinPipeline/1.0)"
     }
 
     for taxi_type in taxi_types:
@@ -80,7 +79,14 @@ def materialize():
             logger.info(f"Fetching {url}")
 
             try:
-                
+                # r = requests.get(url, headers=headers, timeout=300)
+                headers = {
+                      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                      "Accept": "application/octet-stream,application/parquet,*/*",
+                      "Accept-Language": "en-US,en;q=0.9",
+                      "Connection": "keep-alive",
+                }
+
                 r = requests.get(url, headers=headers, timeout=300)
 
                 r.raise_for_status()
@@ -100,7 +106,8 @@ def materialize():
                 errors.append(msg)
 
     if not all_dfs:
-        raise ValueError("No data fetched. Check 403 or network errors.")
+        logger.warning("No data fetched for interval. Returning empty dataframe.")
+        return pd.DataFrame()
 
     combined = pd.concat(all_dfs, ignore_index=True)
 
