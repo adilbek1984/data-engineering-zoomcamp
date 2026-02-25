@@ -90,7 +90,7 @@ def materialize():
                 df["extracted_at"] = extracted_at
 
                 all_dataframes.append(df)
-                print(f"Successfully downloaded {year}-{month:02d}: {len(df) rows")
+                print(f"Successfully downloaded {year}-{month:02d}: {len(df)} rows")
 
             except requests.exceptions.RequestException as e:
                 error_msg = f"Error downloading {taxi_type} {year}-{month:02d}: {e}"
