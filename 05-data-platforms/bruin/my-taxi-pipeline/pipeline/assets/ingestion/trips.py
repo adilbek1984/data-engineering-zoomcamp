@@ -31,8 +31,8 @@ def generate_month_range(start_date: str, end_date: str) -> list[tuple[int, int]
     Generates list of (year, month) tuples between start_date and end_date inclusive.
     Dates must be in format YYYY-MM-DD.
     Example:
-        generate_month_range("2022-01-15", "2022-03-10")
-        -> [(2022, 1), (2022, 2), (2022, 3)]
+    generate_month_range("2022-01-15", "2022-03-10")
+    -> [(2022, 1), (2022, 2), (2022, 3)]
     """
 
     if not start_date or not end_date:
@@ -50,14 +50,13 @@ def generate_month_range(start_date: str, end_date: str) -> list[tuple[int, int]
 
     return months
 
-"""
-def safe_read_parquet(content: bytes) -> pd.DataFrame:
+#def safe_read_parquet(content: bytes) -> pd.DataFrame:
     """
-    Читаем parquet через pandas.
-    Полностью удаляем timezone и приводим datetime к строке.
-    """
+    # Читаем parquet через pandas.
+    # Полностью удаляем timezone и приводим datetime к строке.
+    
     df = pd.read_parquet(io.BytesIO(content))
-    """
+    
     # 1️⃣ Убираем timezone
     for col in df.select_dtypes(include=["datetimetz"]):
         df[col] = df[col].dt.tz_localize(None)
@@ -71,23 +70,23 @@ def safe_read_parquet(content: bytes) -> pd.DataFrame:
 
 def materialize():
     # Get start and end dates from environment variables
-		start_date = os.environ.get("BRUIN_START_DATE")
+	start_date = os.environ.get("BRUIN_START_DATE")
     end_date = os.environ.get("BRUIN_END_DATE")
 		
-		# Get taxi_type
+	# Get taxi_type
     bruin_vars = json.loads(os.environ["BRUIN_VARS"])
     taxi_types = bruin_vars.get("taxi_types")
-		print(f"Taxi types: {taxi_types}")
+	print(f"Taxi types: {taxi_types}")
 
     # Generate list of months to process
-		months = generate_month_range(start_date, end_date)
+	months = generate_month_range(start_date, end_date)
     		
 
-		# Download and combine parquet files
-		all_dataframes = []
+	# Download and combine parquet files
+	all_dataframes = []
     errors = []
-		# base_url = "https://d37ci6vzurychx.cloudfront.net/trip-data"
-		extracted_at = datetime.now()
+	# base_url = "https://d37ci6vzurychx.cloudfront.net/trip-data"
+	extracted_at = datetime.now()
 
     for taxi_type in taxi_types:
         for year, month in months:
@@ -97,13 +96,13 @@ def materialize():
 
             try:
                 response = requests.get(url, timeout=300)
-			          response.raise_for_status()
+			    response.raise_for_status()
 
-			          df = pd.read_parquet(io.BytesIO(response.content))
+			    df = pd.read_parquet(io.BytesIO(response.content))
 
-			          # Normalize column names to lowercase with underscores to avoid collisions
-			          # e.g., 'Airport_fee' and 'airport_fee' both become 'airport_fee'
-			          df.columns = df.columns.str.lower().str.replace(' ', '_')
+			    # Normalize column names to lowercase with underscores to avoid collisions
+			    # e.g., 'Airport_fee' and 'airport_fee' both become 'airport_fee'
+			    df.columns = df.columns.str.lower().str.replace(' ', '_')
 
                 df["taxi_type"] = taxi_type
                 df["extracted_at"] = extracted_at
@@ -113,18 +112,19 @@ def materialize():
 
             except requests.exceptions.RequestException as e:
                 error_msg = f"Error downloading {taxi_type} {year}-{month:02d}: {e}"
- 			          print(error_msg)
-			          errors.append(error_msg)
+ 			    print(error_msg)
+			    errors.append(error_msg)
             except Exception as e:
                 error_msg = f"Error processing {taxi_type} {year}-{month:02d}: {e}"
-			          print(error_msg)
-			          errors.append(error_msg)
+			    print(error_msg)
+			    errors.append(error_msg)
 
     if not all_dataframes:
         error_summary = "\n".join(errors) if errors else "No errors recorded"
-		    raise ValueError(f"No dataframes to combine. Failed to download all files. \nErrors:\n{error_summary}")
+		raise ValueError(f"No dataframes to combine. Failed to download all files. \nErrors:\n{error_summary}")
     if errors:
         print(f"\nWarning: {len(errors)} file(s) failed to download, but continuing with {len(all_dataframes)} success downloads")
+    
     combined_df = pd.concat(all_dataframes, ignore_index=True)
 		print(f"Total rows combined: {len(combined_df}")
 		return combined_df
