@@ -77,7 +77,9 @@ def materialize():
             # logger.info(f"Fetching {url}")
 
             try:
-                response = requests.get(url, timeout=300)
+                #response = requests.get(url, timeout=300)
+                headers = {"User-Agent": "Mozilla/5.0"}
+                response = requests.get(url, headers=headers, timeout=300)
                 response.raise_for_status()
 
                 df = pd.read_parquet(io.BytesIO(response.content))
