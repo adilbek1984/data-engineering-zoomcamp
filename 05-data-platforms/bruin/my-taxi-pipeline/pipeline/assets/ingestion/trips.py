@@ -20,10 +20,11 @@ from datetime import datetime
 from dateutil.relativedelta import relativedelta
 import logging
 
-#logging.basicConfig(level=logging.INFO)
-#logger = logging.getLogger(__name__)
+# logging.basicConfig(level=logging.INFO)
+# logger = logging.getLogger(__name__)
 
 BASE_URL = "https://d37ci6vzurychx.cloudfront.net/trip-data"
+
 
 def generate_month_range(start_date: str, end_date: str) -> list[tuple[int, int]]:
     """
@@ -49,63 +50,69 @@ def generate_month_range(start_date: str, end_date: str) -> list[tuple[int, int]
 
     return months
 
+
 def materialize():
     # Get start and end dates from environment variables
-	start_date = os.environ.get("BRUIN_START_DATE")
+    start_date = os.environ.get("BRUIN_START_DATE")
     end_date = os.environ.get("BRUIN_END_DATE")
-		
-	# Get taxi_type
+
+    # Get taxi_type
     bruin_vars = json.loads(os.environ["BRUIN_VARS"])
     taxi_types = bruin_vars.get("taxi_types")
-	print(f"Taxi types: {taxi_types}")
+    print(f"Taxi types: {taxi_types}")
 
     # Generate list of months to process
-	months = generate_month_range(start_date, end_date)
-    		
+    months = generate_month_range(start_date, end_date)
 
-	# Download and combine parquet files
-	all_dataframes = []
+    # Download and combine parquet files
+    all_dataframes = []
     errors = []
-	# base_url = "https://d37ci6vzurychx.cloudfront.net/trip-data"
-	extracted_at = datetime.now()
+    # base_url = "https://d37ci6vzurychx.cloudfront.net/trip-data"
+    extracted_at = datetime.now()
 
     for taxi_type in taxi_types:
         for year, month in months:
-          print(f"Downloading {year}-{month:02d}: {taxi_type}")  
-          url = f"{BASE_URL}/{taxi_type}_tripdata_{year}-{month:02d}.parquet"
-            #logger.info(f"Fetching {url}")
+            print(f"Downloading {year}-{month:02d}: {taxi_type}")
+            url = f"{BASE_URL}/{taxi_type}_tripdata_{year}-{month:02d}.parquet"
+            # logger.info(f"Fetching {url}")
 
-          try:
-              response = requests.get(url, timeout=300)
-			  response.raise_for_status()
+            try:
+                response = requests.get(url, timeout=300)
+                response.raise_for_status()
 
-			  df = pd.read_parquet(io.BytesIO(response.content))
+                df = pd.read_parquet(io.BytesIO(response.content))
 
-			  # Normalize column names to lowercase with underscores to avoid collisions
-			  # e.g., 'Airport_fee' and 'airport_fee' both become 'airport_fee'
-			  df.columns = df.columns.str.lower().str.replace(' ', '_')
+                # Normalize column names to lowercase with underscores to avoid collisions
+                # e.g., 'Airport_fee' and 'airport_fee' both become 'airport_fee'
+                df.columns = df.columns.str.lower().str.replace(' ', '_')
 
-              df["taxi_type"] = taxi_type
-              df["extracted_at"] = extracted_at
+                df["taxi_type"] = taxi_type
+                df["extracted_at"] = extracted_at
 
-              all_dataframes.append(df)
-              print(f"Successfully downloaded {year}-{month:02d}: {len(df) rows"}
+                all_dataframes.append(df)
+                print(f"Successfully downloaded {year}-{month:02d}: {len(df) rows")
 
-          except requests.exceptions.RequestException as e:
-              error_msg = f"Error downloading {taxi_type} {year}-{month:02d}: {e}"
- 			  print(error_msg)
-			  errors.append(error_msg)
-          except Exception as e:
-              error_msg = f"Error processing {taxi_type} {year}-{month:02d}: {e}"
-			  print(error_msg)
-			  errors.append(error_msg)
+            except requests.exceptions.RequestException as e:
+                error_msg = f"Error downloading {taxi_type} {year}-{month:02d}: {e}"
+                print(error_msg)
+                errors.append(error_msg)
+
+            except Exception as e:
+                error_msg = f"Error processing {taxi_type} {year}-{month:02d}: {e}"
+                print(error_msg)
+                errors.append(error_msg)
 
     if not all_dataframes:
         error_summary = "\n".join(errors) if errors else "No errors recorded"
-		raise ValueError(f"No dataframes to combine. Failed to download all files. \nErrors:\n{error_summary}")
+        raise ValueError(
+            f"No dataframes to combine. Failed to download all files. \nErrors:\n{error_summary}"
+        )
+
     if errors:
-        print(f"\nWarning: {len(errors)} file(s) failed to download, but continuing with {len(all_dataframes)} success downloads")
-    
+        print(
+            f"\nWarning: {len(errors)} file(s) failed to download, but continuing with {len(all_dataframes)} success downloads"
+        )
+
     combined_df = pd.concat(all_dataframes, ignore_index=True)
-		print(f"Total rows combined: {len(combined_df}")
-		return combined_df
+    print(f"Total rows combined: {len(combined_df)}")
+    return combined_df
