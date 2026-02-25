@@ -50,24 +50,6 @@ def generate_month_range(start_date: str, end_date: str) -> list[tuple[int, int]
 
     return months
 
-#def safe_read_parquet(content: bytes) -> pd.DataFrame:
-    """
-    # Читаем parquet через pandas.
-    # Полностью удаляем timezone и приводим datetime к строке.
-    
-    df = pd.read_parquet(io.BytesIO(content))
-    
-    # 1️⃣ Убираем timezone
-    for col in df.select_dtypes(include=["datetimetz"]):
-        df[col] = df[col].dt.tz_localize(None)
-
-    # 2️⃣ Превращаем ВСЕ datetime в string
-    for col in df.select_dtypes(include=["datetime64[ns]"]):
-        df[col] = df[col].astype(str)
-
-    return df
-    """
-
 def materialize():
     # Get start and end dates from environment variables
 	start_date = os.environ.get("BRUIN_START_DATE")
