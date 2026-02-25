@@ -25,7 +25,6 @@ import logging
 
 BASE_URL = "https://d37ci6vzurychx.cloudfront.net/trip-data"
 
-
 def generate_month_range(start_date: str, end_date: str) -> list[tuple[int, int]]:
     """
     Generates list of (year, month) tuples between start_date and end_date inclusive.
@@ -76,30 +75,30 @@ def materialize():
           url = f"{BASE_URL}/{taxi_type}_tripdata_{year}-{month:02d}.parquet"
             #logger.info(f"Fetching {url}")
 
-            try:
-                response = requests.get(url, timeout=300)
-			    response.raise_for_status()
+          try:
+              response = requests.get(url, timeout=300)
+			  response.raise_for_status()
 
-			    df = pd.read_parquet(io.BytesIO(response.content))
+			  df = pd.read_parquet(io.BytesIO(response.content))
 
-			    # Normalize column names to lowercase with underscores to avoid collisions
-			    # e.g., 'Airport_fee' and 'airport_fee' both become 'airport_fee'
-			    df.columns = df.columns.str.lower().str.replace(' ', '_')
+			  # Normalize column names to lowercase with underscores to avoid collisions
+			  # e.g., 'Airport_fee' and 'airport_fee' both become 'airport_fee'
+			  df.columns = df.columns.str.lower().str.replace(' ', '_')
 
-                df["taxi_type"] = taxi_type
-                df["extracted_at"] = extracted_at
+              df["taxi_type"] = taxi_type
+              df["extracted_at"] = extracted_at
 
-                all_dataframes.append(df)
-                print(f"Successfully downloaded {year}-{month:02d}: {len(df) rows"}
+              all_dataframes.append(df)
+              print(f"Successfully downloaded {year}-{month:02d}: {len(df) rows"}
 
-            except requests.exceptions.RequestException as e:
-                error_msg = f"Error downloading {taxi_type} {year}-{month:02d}: {e}"
- 			    print(error_msg)
-			    errors.append(error_msg)
-            except Exception as e:
-                error_msg = f"Error processing {taxi_type} {year}-{month:02d}: {e}"
-			    print(error_msg)
-			    errors.append(error_msg)
+          except requests.exceptions.RequestException as e:
+              error_msg = f"Error downloading {taxi_type} {year}-{month:02d}: {e}"
+ 			  print(error_msg)
+			  errors.append(error_msg)
+          except Exception as e:
+              error_msg = f"Error processing {taxi_type} {year}-{month:02d}: {e}"
+			  print(error_msg)
+			  errors.append(error_msg)
 
     if not all_dataframes:
         error_summary = "\n".join(errors) if errors else "No errors recorded"
