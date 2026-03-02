@@ -1,0 +1,4 @@
+dlt[duckdb]>=1.22.1
+marimo>=0.8.0
+ibis-framework>=9.0.0
+plotly>=5.0.0
