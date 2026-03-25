@@ -115,8 +115,11 @@ custom_checks:
 -- Staging query: clean, deduplicate, and enrich
 WITH source_data AS (
     SELECT
-        COALESCE(tpep_pickup_datetime, lpep_pickup_datetime) AS pickup_datetime,
-        COALESCE(tpep_dropoff_datetime, lpep_dropoff_datetime) AS dropoff_datetime,
+        -- Явное приведение VARCHAR -> TIMESTAMP
+        CAST(COALESCE(tpep_pickup_datetime, lpep_pickup_datetime) AS TIMESTAMP) AS pickup_datetime,
+        CAST(COALESCE(tpep_dropoff_datetime, lpep_dropoff_datetime) AS TIMESTAMP) AS dropoff_datetime,
+        --COALESCE(tpep_pickup_datetime, lpep_pickup_datetime) AS pickup_datetime,
+        --COALESCE(tpep_dropoff_datetime, lpep_dropoff_datetime) AS dropoff_datetime,
         pulocationid AS pickup_location_id,
         dolocationid AS dropoff_location_id,
         taxi_type,

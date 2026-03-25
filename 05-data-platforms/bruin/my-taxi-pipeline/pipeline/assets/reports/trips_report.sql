@@ -109,6 +109,8 @@ SELECT
 FROM staging.trips
 WHERE pickup_datetime >= '{{ start_datetime }}'
   AND pickup_datetime <  '{{ end_datetime }}'
+--WHERE CAST(pickup_datetime AS DATE) = CAST('{{ start_datetime }}' AS DATE)
+--  AND CAST(pickup_datetime AS DATE) < CAST('{{ end_datetime }}' AS DATE)
 
 GROUP BY
     CAST(pickup_datetime AS DATE),
