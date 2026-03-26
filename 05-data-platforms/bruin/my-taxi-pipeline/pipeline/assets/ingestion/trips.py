@@ -70,13 +70,9 @@ def materialize():
     all_dfs = []
     errors = []
 
-    # Используем Session для стабильности
-    session = requests.Session()
-    session.headers.update({
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
-        "Accept-Language": "en-US,en;q=0.9",
-    })
+    headers = {
+        "User-Agent": "Mozilla/5.0 (compatible; BruinPipeline/1.0)"
+    }
 
     for taxi_type in taxi_types:
         for year, month in months:
@@ -84,14 +80,16 @@ def materialize():
             logger.info(f"Fetching {url}")
 
             try:
-                # Пытаемся получить файл
-                r = session.get(url, timeout=300)
-                
-                # Если всё же 403, попробуем вывести детали
-                if r.status_code == 403:
-                    logger.error(f"403 Forbidden для {url}. CloudFront блокирует IP воркера.")
-                    continue
-                
+                # r = requests.get(url, headers=headers, timeout=300)
+                headers = {
+                      "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                      "Accept": "application/octet-stream,application/parquet,*/*",
+                      "Accept-Language": "en-US,en;q=0.9",
+                      "Connection": "keep-alive",
+                }
+
+                r = requests.get(url, headers=headers, timeout=300)
+
                 r.raise_for_status()
 
                 df = safe_read_parquet(r.content)
@@ -104,11 +102,16 @@ def materialize():
                 logger.info(f"Loaded {year}-{month:02d} {taxi_type}: {len(df)} rows")
 
             except Exception as e:
-                logger.warning(f"Failed {taxi_type} {year}-{month:02d}: {e}")
+                msg = f"Failed {taxi_type} {year}-{month:02d}: {e}"
+                logger.warning(msg)
+                errors.append(msg)
 
-    # ВАЖНО: Если данных нет, лучше вызвать ошибку, чем возвращать пустой DF.
-    # Это остановит пайплайн и не даст сломать BigQuery пустой загрузкой.
     if not all_dfs:
-        raise Exception("Ни один файл не был скачан. Пайплайн остановлен, чтобы избежать ошибок в BigQuery.")
+        logger.warning("No data fetched for interval. Returning empty dataframe.")
+        return pd.DataFrame()
 
-    return pd.concat(all_dfs, ignore_index=True)
+    combined = pd.concat(all_dfs, ignore_index=True)
+
+    logger.info(f"Total rows: {len(combined)}")
+
+    return combined
