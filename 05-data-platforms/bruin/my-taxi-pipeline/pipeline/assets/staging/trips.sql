@@ -9,7 +9,7 @@
 name: staging.trips
 # TODO: Set platform type.
 # Docs: https://getbruin.com/docs/bruin/assets/sql
-# suggested type: duckdb.sql
+# suggested type: duckdb.sql, bq.sql
 type: duckdb.sql
 
 # TODO: Declare dependencies so `bruin run ... --downstream` and lineage work.

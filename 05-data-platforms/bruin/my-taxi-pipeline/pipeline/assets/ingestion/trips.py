@@ -4,6 +4,7 @@ name: ingestion.trips
 type: python
 image: python:3.11
 connection: duckdb-default
+#connection: bigquery-default
 
 materialization:
   type: table

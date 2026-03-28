@@ -9,7 +9,8 @@ Please reach out to us via our [Slack Community](https://join.slack.com/t/bruind
 Register for [Bruin Cloud](https://cloud.getbruin.com/register) to deploy your pipelines: registration is free (no credit card required) and includes complimentary credits to get started.
 
 ### YouTube Video Tutorial Playlist
-[![Video Tutorials Playlist](https://img.youtube.com/vi/f6vg7lGqZx0/hqdefault.jpg)](https://www.youtube.com/playlist?list=PLnRr-L-cuxO4lUUdkXV5YPHT5ZEcEeXQD)
+- [Video Tutorials Playlist](https://www.youtube.com/playlist?list=PLnRr-L-cuxO4lUUdkXV5YPHT5ZEcEeXQD)
+- [Bruin Core Concepts Playlist](https://www.youtube.com/playlist?list=PLnRr-L-cuxO72ws5jYS8oyKMWs-AosgdP)
 
 ## Learning Goals
 
@@ -67,6 +68,10 @@ This module introduces Bruin as a unified data platform that combines **data ing
 ## Part 1: What is a Data Platform?
 
 ### Video Tutorial
+
+
+[![Bruin Core Concepts](https://img.youtube.com/vi/LzdcyheqpC0/hqdefault.jpg)](https://youtu.be/LzdcyheqpC0)
+
 [![Part 1: What is a Data Platform?](https://img.youtube.com/vi/f6vg7lGqZx0/hqdefault.jpg)](https://youtu.be/f6vg7lGqZx0)
 
 ### Learning Goals
@@ -196,7 +201,7 @@ The most common commands you'll use during development:
 | `bruin lineage <path>` | View asset dependencies (upstream/downstream) |
 | `bruin query --connection <conn> --query "..."` | Execute ad-hoc SQL queries |
 | `bruin connections list` | List configured connections |
-| `bruin connections ping <name>` | Test connection connectivity |
+| `bruin connections test --name <name>` | Test connection connectivity |
 
 **Try these commands with your default pipeline:**
 
@@ -672,7 +677,7 @@ Bruin Cloud provides managed infrastructure to schedule and run your pipelines a
 | `bruin render <path>` | Show rendered template output |
 | `bruin format <path>` | Format code |
 | `bruin connections list` | List configured connections |
-| `bruin connections ping <name>` | Test connection connectivity |
+| `bruin connections test --name <name>` | Test connection connectivity |
 
 ---
 
