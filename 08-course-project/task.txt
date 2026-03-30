@@ -1,0 +1,136 @@
+1. Где взять данные?
+Самый удобный вариант для проекта — использовать подготовленный архив на Kaggle, так как официальный сайт BTS часто требует сложной навигации.
+
+Ссылка: Kaggle - Flight Delays and Cancellations
+
+Что внутри: 3 файла (flights.csv, airports.csv, airlines.csv). Основной файл flights.csv содержит данные за весь 2015 год (около 5.8 млн строк).
+
+2. Структура данных (Твой Staging слой)
+В файле flights.csv время представлено специфически (например, 1730 вместо 17:30). Твоей первой инженерной задачей в SQL будет превратить это в нормальный TIMESTAMP.
+
+Основные поля для анализа:
+
+YEAR, MONTH, DAY, DAY_OF_WEEK — компоненты даты.
+
+SCHEDULED_DEPARTURE — плановое время.
+
+DEPARTURE_DELAY — задержка вылета в минутах (отрицательное число = вылет раньше срока).
+
+ARRIVAL_DELAY — задержка прилета (самый важный показатель).
+
+CANCELLATION_REASON — причина отмены (A - авиакомпания, B - погода, C - система, D - безопасность).
+
+
+3. Твой план действий (Roadmap)
+Шаг 1: Ingestion (Python + GCS)
+Напиши скрипт upload_flights_data.py. Он должен:
+
+Брать локальные файлы (после того как ты скачаешь их с Kaggle).
+
+Загружать их в бакет gs://kestra-zoomcamp-adil-demo/raw/flights/.
+
+Шаг 2: Staging (Bruin + BigQuery External Tables)
+Создай внешние таблицы. Поскольку данных много, в будущем мы сможем обсудить Partitioning (партиционирование) по месяцам, чтобы запросы работали быстрее и дешевле.
+
+Шаг 3: Transformation (The Fun Part)
+В Bruin ты напишешь SQL, который:
+
+Объединит коды авиакомпаний с их полными названиями.
+
+Рассчитает «коэффициент пунктуальности» для каждого аэропорта.
+
+Сгруппирует задержки по часам (например, утро vs вечер).
+
+
+
+Я: 3 файла лежат в бакете в папке raw/flights/
+
+Ответ Gemini
+Отлично! Первый этап Ingestion (загрузка данных) успешно завершен. Теперь у тебя в Google Cloud Storage лежат «сырые» данные, и пришло время превратить их в таблицы BigQuery, с которыми можно работать через SQL.
+
+В рамках проекта мы будем использовать архитектуру Medallion:
+
+Bronze (Raw): Внешние таблицы, которые просто «смотрят» на CSV в бакете.
+
+Silver (Staging): Очищенные данные с правильными типами (например, даты в формате DATE).
+
+Gold (Analytics): Финальные таблицы для дашбордов.
+
+Шаг 1: Создание Внешних таблиц (Bronze Layer)
+Поскольку файлы разные (авиакомпании, аэропорты и сами рейсы), нам нужно 3 разных SQL-ассета в Bruin. Начнем с самого простого — справочников.
+
+
+
+
+
+1. -- Creating an external table to read the airlines lookup file from GCS bucket
+
+CREATE OR REPLACE EXTERNAL TABLE `kestra-sandbox-486404.staging.ext_airlines`
+(
+  IATA_CODE STRING,
+  AIRLINE STRING
+)
+OPTIONS (
+  format = 'CSV',
+  uris = ['gs://kestra-zoomcamp-adil-demo/raw/flights/airlines.csv'],
+  skip_leading_rows = 1
+);
+
+
+-- Внешняя таблица для Аэропортов
+CREATE OR REPLACE EXTERNAL TABLE `kestra-sandbox-486404.staging.ext_airports`
+(
+  IATA_CODE STRING,
+  AIRPORT STRING,
+  CITY STRING,
+  STATE STRING,
+  COUNTRY STRING,
+  LATITUDE FLOAT64,
+  LONGITUDE FLOAT64
+)
+OPTIONS (
+  format = 'CSV',
+  uris = ['gs://kestra-zoomcamp-adil-demo/raw/flights/airports.csv'],
+  skip_leading_rows = 1
+);
+
+-- Внешняя таблица для Рейсов (самая большая)
+CREATE OR REPLACE EXTERNAL TABLE `kestra-sandbox-486404.staging.ext_flights`
+(
+  YEAR INT64,
+  MONTH INT64,
+  DAY INT64,
+  DAY_OF_WEEK INT64,
+  AIRLINE STRING,
+  FLIGHT_NUMBER INT64,
+  TAIL_NUMBER STRING,
+  ORIGIN_AIRPORT STRING,
+  DESTINATION_AIRPORT STRING,
+  SCHEDULED_DEPARTURE INT64,
+  DEPARTURE_TIME INT64,
+  DEPARTURE_DELAY INT64,
+  TAXI_OUT INT64,
+  WHEELS_OFF INT64,
+  SCHEDULED_TIME INT64,
+  ELAPSED_TIME INT64,
+  AIR_TIME INT64,
+  DISTANCE INT64,
+  WHEELS_ON INT64,
+  TAXI_IN INT64,
+  SCHEDULED_ARRIVAL INT64,
+  ARRIVAL_TIME INT64,
+  ARRIVAL_DELAY INT64,
+  DIVERTED INT64,
+  CANCELLED INT64,
+  CANCELLATION_REASON STRING,
+  AIR_SYSTEM_DELAY INT64,
+  SECURITY_DELAY INT64,
+  AIRLINE_DELAY INT64,
+  LATE_AIRCRAFT_DELAY INT64,
+  WEATHER_DELAY INT64
+)
+OPTIONS (
+  format = 'CSV',
+  uris = ['gs://kestra-zoomcamp-adil-demo/raw/flights/flights.csv'],
+  skip_leading_rows = 1
+);
