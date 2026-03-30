@@ -47,17 +47,17 @@ Place your Kaggle CSV files in `data/flights/` and run the ingestion script:
 ```bash
 python upload_flights_data.py
 
-2. Run Transformations
+### 2. Run Transformations
 Once the external tables are ready in BigQuery, execute the Bruin pipeline:
 
 bruin run pipeline
 
-3. Review the Lineage
+### 3. Review the Lineage
 To visualize how data flows from Staging to Reports:
 
 bruin lineagelist
 
-📂 Project Structure
+## 📂 Project Structure
 
 08-course-project/
 ├── data/flights/         # Local source CSVs (Kaggle)
