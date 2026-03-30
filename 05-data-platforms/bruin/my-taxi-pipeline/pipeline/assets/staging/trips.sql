@@ -10,7 +10,7 @@ name: staging.trips
 # TODO: Set platform type.
 # Docs: https://getbruin.com/docs/bruin/assets/sql
 # suggested type: duckdb.sql, bq.sql
-type: duckdb.sql
+type: bq.sql
 
 # TODO: Declare dependencies so `bruin run ... --downstream` and lineage work.
 # Examples:
@@ -147,8 +147,8 @@ deduplicated AS (
                 pickup_datetime,
                 dropoff_datetime,
                 pickup_location_id,
-                dropoff_location_id,
-                fare_amount
+                dropoff_location_id
+                --fare_amount since BigQuery doesn't support double in partitioning keys
             ORDER BY extracted_at DESC
         ) AS row_num
     FROM source_data

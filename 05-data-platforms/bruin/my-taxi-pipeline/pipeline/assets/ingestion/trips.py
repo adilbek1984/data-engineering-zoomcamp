@@ -3,8 +3,8 @@
 name: ingestion.trips
 type: python
 image: python:3.11
-connection: duckdb-default
-#connection: bigquery-default
+#connection: duckdb-default
+connection: gcp-default
 
 materialization:
   type: table
