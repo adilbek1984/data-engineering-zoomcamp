@@ -27,7 +27,11 @@ airports AS (
 
 SELECT 
     f.flight_date,
-    -- Расчет сезона на основе месяца
+    -- Новые колонки в формате DATETIME
+    f.scheduled_departure,
+    f.departure_time,
+
+    -- Расчет сезона
     CASE 
         WHEN EXTRACT(MONTH FROM f.flight_date) IN (12, 1, 2) THEN 'Winter'
         WHEN EXTRACT(MONTH FROM f.flight_date) IN (3, 4, 5) THEN 'Spring'
@@ -48,16 +52,19 @@ SELECT
     dest.airport_name as destination_airport_name,
     dest.city as destination_city,
     
-    -- Метрики задержек
+    -- Метрики полета
     f.departure_delay,
     f.arrival_delay,
     f.air_time,
     f.distance,
     f.is_cancelled,
     
-    -- Группировка задержек по причинам для удобства
-    (f.airline_delay + f.late_aircraft_delay) as carrier_caused_delay,
-    (f.weather_delay + f.air_system_delay + f.security_delay) as external_caused_delay
+    -- Детализация задержек (4 основные колонки без группировки)
+    f.airline_delay,
+    f.weather_delay,
+    f.air_system_delay,
+    f.late_aircraft_delay,
+    f.security_delay -- Добавил пятой для полной точности данных
 
 FROM flights f
 LEFT JOIN airlines a ON f.airline_id = a.airline_id

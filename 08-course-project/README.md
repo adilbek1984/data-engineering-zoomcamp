@@ -193,7 +193,7 @@ ADDCOLUMNS(
 
 **2nd dashboard: Flight Reliability & Delay Deep Dive**
 * **Visuals**: Scatter Chart (Distance vs Delay), Time of Day Analysis (Hourly columns).
-* **Insight**: Discovered the "Snowball Effect" — delays peak between 6 PM - 9 PM due to cumulative schedule drift.
+* **Insight**: Discovered the "Snowball Effect" — delays peak between 5 PM - 9 PM and at 3 AM due to cumulative schedule drift.
 
 **Dashbord #2**
 ![Dashbord #2](pbi_report/dashboard_2.png)
