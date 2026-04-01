@@ -134,13 +134,17 @@ bruin run pipeline/assets/analytics/fct_flights.sql
 bruin run pipeline/assets/reports/winter_delay_analysis.sql
 
 ```
-**Example of BigQuery staging table**
+**Example of BigQuery staging table preview**
 
-![Example of BigQuery staging table](images/big_query_staging_table.png)
+![Example of BigQuery staging table preview](images/big_query_staging_table.png)
 
-**Example of BigQuery analytics table**
+**Example of BigQuery analytics table schema**
 
-![Example of BigQuery analytics table](images/big_query_analytics_table.png)
+![Example of BigQuery analytics table schema](images/big_query_analytics_table_schema.png)
+
+**Example of BigQuery analytics table preview**
+
+![Example of BigQuery analytics table preview](images/big_query_analytics_table.png)
 
 **Review Data Lineage**
 
