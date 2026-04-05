@@ -258,8 +258,8 @@ This ensures that your service account key is excluded from version control and 
 **New Service Account Creation**
 ![New Service Account Creation](images/sa_creation.png)
 
-**New Service Account Creation**
-![New Service Account Creation](images/sa_permissions.png)
+**Manage Service Account Permissions**
+![Manage Service Account Permissions](images/sa_permissions.png)
 
 **New JSON key generation**
 ![New JSON key generation](images/sa_key_generation.png)
