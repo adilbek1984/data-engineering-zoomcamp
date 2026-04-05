@@ -231,13 +231,41 @@ ADDCOLUMNS(
 ├── upload_flights_data.py # Python script for GCS upload
 ├── .bruin.yml             # Bruin configuration file
 ├── gcp.json               # GCP Service Account key
+├── .gitignore             # Git ignore rules
 └── README.md
 ```
 
-**Step 1: Authentication & Setup**
-1. **GCP Credentials**: Place your Google Cloud Service Account key (`gcs.json`) in the root directory of the project (the same folder where `bruin.yml` is located).
-2. **Configuration**: Ensure your `bruin.yml` reflects the correct project ID and path:
-Ensure your bruin.yml is configured as follows:
+**Step 1: Google Cloud Platform Setup**
+1. **Create a Project:**  Create a new project (e.g., `kestra-sandbox-486404`). 
+
+![Google cloud project creation](images/cloud_project_creation.png)
+
+2. **Google Cloud Storage (GCS):** Create a bucket (e.g., `kestra-zoomcamp-adil-demo`).
+
+![Google cloud storage bucket creation](images/gcs_bucket_creation.png)
+
+3. Service Account:
+
+* Create a Service Account with **Storage Admin** and **BigQuery Admin** roles.
+* Generate a JSON key, rename it to `gcs.json`, and place it in the project root directory.
+* Create a `.gitignore` file in the project root (if it doesn’t exist) and add the following line:
+`gcs.json`
+This ensures that your service account key is excluded from version control and not uploaded to GitHub.
+
+**IAM & Admin / Service Accounts**
+![IAM & Admin / Service Accounts](images/iam_service_account.png)
+
+**New Service Account Creation**
+![New Service Account Creation](images/sa_creation.png)
+
+**New Service Account Creation**
+![New Service Account Creation](images/sa_permissions.png)
+
+**New JSON key generation**
+![New JSON key generation](images/sa_key_generation.png)
+
+**Step 2: Configuration (**`bruin.yml`**)
+Ensure your `bruin.yml` points to your created project and key:
 
 ```yaml
 google_cloud_platform:
@@ -247,17 +275,18 @@ google_cloud_platform:
       service_account_file: "./gcs.json"
 ```
 
-**Step 2: Data Ingestion (Upload to GCS)**
+**Step 3: Data Ingestion (Upload to GCS)**
 
-Place your Kaggle CSV files in `data/flights/` and run python script to move local CSV files to your Google Cloud Storage bucket:
+1. Place your Kaggle CSV files (`airlines.csv`, `airports.csv`, `flights.csv`) in `data/flights/` folder. 
+2. Run python script to move local CSV files to your Google Cloud Storage bucket:
 
 ```python
 python upload_flights_data.py
 ```
 
-**Step 3: Create External Tables in BigQuery**
+**Step 4: Create External Tables in BigQuery**
 
-Before running the transformation pipeline, you must link the GCS files to BigQuery. Execute the following SQL commands in the **BigQuery Console**:
+Before running the transformation pipeline, you must link the GCS files to BigQuery. Execute the following SQL commands in the **BigQuery Console** to create **Bronze Layer**:
 
 ```sql
 -- External Table for Airlines
@@ -310,19 +339,21 @@ OPTIONS (
   skip_leading_rows = 1
 );
 ```
-**Step 4: Run the Transformation Pipeline**
+**Step 5: Run the Transformation Pipeline**
 
 Now that the external tables are ready, execute the **Bruin** pipeline to perform data cleaning, partitioning, and modeling:
 
 ```bash
-bruin run
+bruin run pipeline
 ```
 
-This command will create the `stg_` and `fct_` tables based on the logic defined in the `pipeline/assets/` directory.
+This command will create the `stg_` (**Silver Layer**) and `fct_` (**Gold Layer**) tables based on the logic defined in the `pipeline/assets/` directory.
 
-**Step 5: Visualization**
+**Step 6: Visualization**
 
 1. Open `US Flights Data 2015 Dashboard.pbix` in Power BI Desktop.
 2. Go to **Transform Data -> Data Source Settings**.
-3. Change the project ID to `kestra-sandbox-486404` and connect to the `analytics` dataset.
-4. Click Refresh to populate the visuals.
+3. Change the Project ID to your own, connect to the `analytics` dataset and click Refresh (e.g., `kestra-sandbox-486404`).
+
+**Getting Data from BigQuery Database**
+![Getting Data from BigQuery Database](images/pbi_pq_getdata.png)
