@@ -264,7 +264,8 @@ This ensures that your service account key is excluded from version control and 
 **New JSON key generation**
 ![New JSON key generation](images/sa_key_generation.png)
 
-**Step 2: Configuration (**`bruin.yml`**)
+**Step 2: Configuration** (`bruin.yml`)
+
 Ensure your `bruin.yml` points to your created project and key:
 
 ```yaml
