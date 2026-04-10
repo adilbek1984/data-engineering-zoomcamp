@@ -322,7 +322,15 @@ dbt build --vars 'is_test_run: false'
 **Data Lineage**
 
 The data flow is transparent and manageable:
-![Data Lineage](images/bruin_lineage.png)
+
+**Data Lineage in Staging Model**
+![Data Lineage in Staging Layer](images/dbt_staging_model.png)
+
+**Data Lineage in Intermediate Model**
+![Data Lineage in Intermediate Layer](images/dbt_intermediate_model.png)
+
+**Data Lineage in Core Model**
+![Data Lineage in Intermediate Layer](images/dbt_core_model.png)
 
 **Step 5: Visualization**
 
