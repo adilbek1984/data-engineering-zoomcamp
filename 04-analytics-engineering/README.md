@@ -1,239 +1,54 @@
-# US Flights Data Engineering Project (2015)
-### Data Engineering Project: Medallion Architecture with Python, BigQuery, and Bruin
+# Week 4: Analytics Engineering (Taxi Rides NY)
+### Data Engineering Zoomcamp - dbt, BigQuery, and Medallion Architecture
 
-## 📝 Problem Description
-The aviation industry generates massive amounts of data daily. This project analyzes a dataset of **5.8 million flights** in the US from 2015 to identify patterns in delays and cancellations. The goal is to provide actionable insights for operational management through a robust data pipeline and interactive dashboards.
-
-**Key Questions Addressed:**
-* **Punctuality:** Which airlines and airports are the most/least punctual (OTP)?
-* **Correlation:** How do flight distance and time of day affect the probability of delay?
-* **Seasonality:** What are the seasonal trends in flight reliability?
+## 📝 Project Overview
+This week focuses on the **Transformation** layer of the ELT pipeline. Using **dbt (data build tool)**, I transformed raw taxi trip data into clean, production-ready analytical models. The project demonstrates a modular approach to data modeling, using **Staging**, **Intermediate**, and **Core** layers to build a scalable data warehouse.
 
 ---
 
-## 🏗️ Project Architecture
-Since the official DOT Bureau of Transportation Statistics does not provide a public API, the data is sourced from **Kaggle**. The project follows a modern **ELT (Extract, Load, Transform)** approach using the **Medallion Architecture** (Bronze, Silver, Gold layers), moving data from raw CSVs to structured analytical reports.
+## 🏗️Architecture & Data Models
+The transformation process follows a structured **Medallion Architecture**.
 
 ![Project Architecture](images/architecture_diagram.png)
 
 ## 🛠️ Technologies & Infrastructure
-* **Cloud:** Storage (Google Cloud Storage, GCS), Data Warehouse ([Google BigQuery](https://cloud.google.com/bigquery))
-* **Infrastructure:** Batch Processing Architecture
-* **Workflow Orchestration & Transformation:** [Bruin](https://github.com/bruin-data/bruin)
+* **Cloud:** Data Lake for raw file storage (Google Cloud Storage, GCS), Data Warehouse (Google BigQuery)
+* **dbt (Cloud/Core):** Transformation, modular modeling, and testing
 * **Language:** Python (Ingestion), SQL (Transformations)
 * **Data Visualization:** Power BI (Desktop & Service)
-* **Source:** [Kaggle: 2015 Flight Delays and Cancellations](https://www.kaggle.com/datasets/usdot/flight-delays)
+* **Source:** [NYC TLC Trip Record Data](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page)
 
 ---
 
-## 🏗️ Data Pipeline Stages
+### 1. Staging Layer (`staging/`)
+Raw data is cleaned, fields are renamed for consistency, and data types are cast.
 
-### 1. Data Acquisition & Ingestion (Bronze Layer)
-The project utilizes a **Batch** approach. Data is uploaded from local sources to **Google Cloud Storage** as the landing zone.
+* `stg_green_tripdata.sql`: Cleaning Green taxi records.
+* `stg_yellow_tripdata.sql`: Cleaning Yellow taxi records.
+* `stg_fhv_tripdata.sql`: Cleaning FHV (For-Hire Vehicle) records.
 
-* **Source:** Manual download of `airlines.csv`, `airports.csv`, and `flights.csv` from Kaggle into `08-course-project/data/flights`.
-* **Upload:** The script `upload_flights_data.py` (located in the root) processes these local files and uploads them to a **Google Cloud Storage** bucket.
-* **External Access:** BigQuery **External Tables** are defined to reference these CSVs directly from GCS, serving as our **Bronze (Raw)** layer.
+### 2. Seeds (`seeds/`)
+Static lookup tables loaded directly into BigQuery:
 
-```python 
-# Fragments of the ingestion logic
-BUCKET_NAME = "kestra-zoomcamp-adil-demo"
-GCS_BASE_FOLDER = "raw/flights"
-...
-...
-for file_path in csv_files:
-        file_name = file_path.name
-        # Standardizing name: lower_case and no spaces
-        target_blob_name = f"{GCS_BASE_FOLDER}/{file_name.lower().replace(' ', '_')}"
-        blob = bucket.blob(target_blob_name)
+* `taxi_zone_lookup.csv`: Mapping location IDs to Boroughs and Zones.
+* `payment_type_lookup.csv`: Mapping payment codes to descriptions.
 
-        print(f"[*] Uploading {file_name}...")
-        try:
-            # Using upload_from_filename is best for large files like flights.csv
-            blob.upload_from_filename(str(file_path))
-            print(f"    [OK] Uploaded to gs://{BUCKET_NAME}/{target_blob_name}")
-        except Exception as e:
-            print(f"    [X] Failed to upload {file_name}: {e}")
+### 3. Intermediate Layer (`intermediate/`)
+Reusable logic and data joining before reaching the final fact tables.
 
-    print("\n[V] Ingestion process finished.")
-```
+* `int_trips_unioned.sql`: Unioning Green and Yellow taxi data into a single stream.
+* `int_trips.sql`: Applying common business logic and joining with seeds.
 
-**Raw data uploaded to GCS Bucket:**
-![Raw Data Uploaded to GCS Bucket](images/gcs_buckets.png)
+### 4. Core Layer (`core/`)
+Final analytical models optimized for querying and reporting.
 
-**External Tables:**
-To keep the architecture cost-effective, we use BigQuery External Tables to query data directly from GCS without duplication.
-
-```sql
-CREATE OR REPLACE EXTERNAL TABLE `kestra-sandbox-486404.staging.ext_flights`
-(
-  YEAR INT64,
-  MONTH INT64,
-  DAY INT64,
-  DAY_OF_WEEK INT64,
-  AIRLINE STRING,
-  FLIGHT_NUMBER INT64,
-  ...
-  ...
-  ...
-  LATE_AIRCRAFT_DELAY INT64,
-  WEATHER_DELAY INT64
-)
-OPTIONS (
-  format = 'CSV',
-  uris = ['gs://kestra-zoomcamp-adil-demo/raw/flights/flights.csv'],
-  skip_leading_rows = 1
-);
-```
-
-**Example of BigQuery external table referencing from GCS**
-
-![Example of BigQuery External Table Referencing from GCS](images/big_query_ext_table.png)
-
-
-### 2. Silver Layer (Staging)
-* **Tool:** Bruin
-* **Process:** Cleaning, renaming to `snake_case`, and schema enforcement for:
-    * `stg_airlines`
-    * `stg_airports`
-    * `stg_flights` (Optimized with **Day Partitioning** and **Clustering** by `airline_id`).
-
-### 3. Gold Layer (Analytics & Reports)
-* **Analytical Table:** `fct_flights` — The core fact table. **Optimized using Partitioning (by Month) and Clustering (by Airline)** to comply with BigQuery best practices for large datasets.
-* **Reporting:** — Targeted tables for specific dashboards (e.g., `winter_delay_analysis`).
-
-For both of these layers we use **Bruin** to run our T (Transform) in the **ELT process**. The pipeline is idempotent and handles dependency management.
-
-**Pipeline Execution**
-
-```bash
-
-bruin run pipeline/assets/staging/stg_airports.sql
-
-```
-
-```bash
-
-bruin run pipeline/assets/staging/stg_airlines.sql
-
-```
-
-```bash
-
-bruin run pipeline/assets/staging/stg_flights.sql
-
-```
-```bash
-
-bruin run pipeline/assets/analytics/fct_flights.sql
-
-```
-
-```bash
-
-bruin run pipeline/assets/reports/winter_delay_analysis.sql
-
-```
-**Example of BigQuery staging table preview**
-
-![Example of BigQuery staging table preview](images/big_query_staging_table.png)
-
-**Example of BigQuery analytics table schema**
-
-![Example of BigQuery analytics table schema](images/big_query_analytics_table_schema.png)
-
-**Example of BigQuery analytics table preview**
-
-![Example of BigQuery analytics table preview](images/big_query_analytics_table.png)
-
-**Review Data Lineage**
-
-The data flow is transparent and manageable:
-![Data Lineage](images/bruin_lineage.png)
-
----
-
-## 📊 Serving: Power BI Dashboards
-
-**Data Modeling & DAX**
-The final data is served through two specialized dashboards in **Power BI**.
-* **Star Schema:** `fct_flights` linked to `Calendar`
-* **Key Measures:** Batch Processing Architecture
-    * `Avg Arrival Delay`: Calculates average for values `> 0` to ensure accuracy
-    * `OTP %`: On-Time Performance (flights with < 15 min delay).
-
-**Creating Calendar calculated table:**
-```dax
-Calendar = 
-VAR MinDate = MIN('fct_flights'[flight_date])
-VAR MaxDate = MAX('fct_flights'[flight_date])
-RETURN
-ADDCOLUMNS(
-    CALENDAR(
-        DATE(YEAR(MinDate), 1, 1), 
-        DATE(YEAR(MaxDate), 12, 31)
-    ),
-    "Year", YEAR([Date]),
-    "MonthNumber", MONTH([Date]),
-    "Month", FORMAT([Date], "mmmm"), 
-    "YearMonth", FORMAT([Date], "yyyy-mm"),
-    "Quarter", "Qtr " & FORMAT([Date], "q"),
-    "WeekDayNum", WEEKDAY([Date], 2),
-    "WeekDayEngShort", 
-        SWITCH(WEEKDAY([Date], 2), 
-            1, "Mon", 2, "Tue", 3, "Wed", 4, "Thu", 5, "Fri", 6, "Sat", "Sun"
-        ), 
-    "WorkDayEng", IF(WEEKDAY([Date], 2) > 5, "weekend", "workday"),
-    "WeekNumber", WEEKNUM([Date], 2)
-)
-```
-
-**Creating a data model and relationships in Model View:**
-
-![Data Model](images/pbi_data_model.png)
-
-**1st dashboard: US Flight Operations Overview 2015**
-* **KPIs**: Total Flights, Distance, Avg Duration, OTP.
-* **Visuals**: Map of Delay Counts, Monthly Trends, Airline Slicers.
-* **Insight**: Validated ~1M delayed flights (~18%), matching 2015 US aviation benchmarks.
-
-**Dashbord #1**
-
-![Dashboard #1](pbi_report/dashboard_1.png)
-
-**2nd dashboard: Flight Reliability & Delay Deep Dive**
-* **Visuals**: Scatter Chart (Distance vs Delay), Time of Day Analysis (Hourly columns).
-* **Insight**: Discovered the "Snowball Effect" — delays peak between 5 PM - 9 PM and at 3 AM due to cumulative schedule drift.
-
-**Dashbord #2**
-![Dashbord #2](pbi_report/dashboard_2.png)
+* `dim_zones.sql`: Dimensional table for taxi zones..
+* `fct_trips.sql`: The main fact table containing all processed trip records.
+* `fct_monthly_zone_revenue.sql`: Aggregated reporting table for financial analysis.
 
 ---
 
 ## 🚀 How to Run
-
-**Prerequisites**
-1. **Google Cloud Project**: Access to GCS and BigQuery.
-2. **Bruin CLI**: Installed on your machine.
-3. **Python 3.9+**
-
-### 📂 Project Structure
-
-```text
-08-course-project/
-├── data/flights/          # Local source CSVs (Kaggle)
-├── pipeline/
-│   ├── assets/
-│   │   ├── staging/       # Silver Layer (SQL)
-│   │   ├── analytics/     # Gold Layer (Fact tables)
-│   │   └── reports/       # Data Marts (Aggregates)
-├── images/                # Visualization & Diagrams
-├── upload_flights_data.py # Python script for GCS upload
-├── .bruin.yml             # Bruin configuration file
-├── gcp.json               # GCP Service Account key
-├── .gitignore             # Git ignore rules
-└── README.md
-```
 
 **Step 1: Google Cloud Platform Setup**
 1. **Create a Project:**  Create a new project (e.g., `kestra-sandbox-486404`). 
@@ -252,105 +67,261 @@ ADDCOLUMNS(
 `gcs.json`
 This ensures that your service account key is excluded from version control and not uploaded to GitHub.
 
-**IAM & Admin / Service Accounts**
-![IAM & Admin / Service Accounts](images/iam_service_account.png)
+**Step 2: Data Ingestion (Upload to GCS)**
 
-**New Service Account Creation**
-![New Service Account Creation](images/sa_creation.png)
+Run the Python scripts to upload static datasets (2019-2020 Green/Yellow, 2019 FHV) from the DTC repository to your **GCS bucket**:
 
-**Manage Service Account Permissions**
-![Manage Service Account Permissions](images/sa_permissions.png)
+```bash
 
-**New JSON key generation**
-![New JSON key generation](images/sa_key_generation.png)
+python load_green_taxi_data.py
+python load_yellow_taxi_data.py
+python load_fhv_taxi_data.py
 
-**Step 2: Configuration** (`bruin.yml`)
-
-Ensure your `bruin.yml` points to your created project and key:
-
-```yaml
-google_cloud_platform:
-    - name: gcp-default
-      project_id: "kestra-sandbox-486404" 
-      location: "europe-west2"
-      service_account_file: "./gcs.json"
 ```
+**Raw data uploaded to GCS Bucket:**
 
-**Step 3: Data Ingestion (Upload to GCS)**
+![Raw Data Uploaded to GCS Bucket](images/gcs_buckets_tripdata.png)
 
-1. Place your Kaggle CSV files (`airlines.csv`, `airports.csv`, `flights.csv`) in `data/flights/` folder. 
-2. Run python script to move local CSV files to your Google Cloud Storage bucket:
 
-```python
-python upload_flights_data.py
-```
+**Step 3: Create BigQuery Tables**
 
-**Step 4: Create External Tables in BigQuery**
-
-Before running the transformation pipeline, you must link the GCS files to BigQuery. Execute the following SQL commands in the **BigQuery Console** to create **Bronze Layer**:
+1. **External Tables**: Before running the transformation pipeline in dbt, you must link the GCS files to BigQuery. Execute the following SQL commands in the **BigQuery Console** to create **Bronze Layer**. This allows BigQuery to query data directly from GCS without double storage:
 
 ```sql
--- External Table for Airlines
-CREATE OR REPLACE EXTERNAL TABLE `kestra-sandbox-486404.staging.ext_airlines`
+-- External Table for Green tripdata
+CREATE OR REPLACE EXTERNAL TABLE `kestra-sandbox-486404.zoomcamp.green_tripdata_ext`
 (
-  IATA_CODE STRING,
-  AIRLINE STRING
+  VendorID STRING,
+  lpep_pickup_datetime TIMESTAMP,
+  lpep_dropoff_datetime TIMESTAMP,
+  store_and_fwd_flag STRING,
+  RatecodeID STRING,
+  PULocationID STRING,
+  DOLocationID STRING,
+  passenger_count INT64,
+  trip_distance NUMERIC,
+  fare_amount NUMERIC,
+  extra NUMERIC,
+  mta_tax NUMERIC,
+  tip_amount NUMERIC,
+  tolls_amount NUMERIC,
+  ehail_fee NUMERIC,
+  improvement_surcharge NUMERIC,
+  total_amount NUMERIC,
+  payment_type INTEGER,
+  trip_type STRING,
+  congestion_surcharge NUMERIC
 )
 OPTIONS (
   format = 'CSV',
-  uris = ['gs://kestra-zoomcamp-adil-demo/raw/flights/airlines.csv'],
-  skip_leading_rows = 1
+  uris = [
+        'gs://kestra-zoomcamp-adil-demo/green_tripdata_2019-*.csv',
+        'gs://kestra-zoomcamp-adil-demo/green_tripdata_2020-*.csv'],
+  skip_leading_rows = 1,
+  ignore_unknown_values = TRUE
 );
 
--- External Table for Airports
-CREATE OR REPLACE EXTERNAL TABLE `kestra-sandbox-486404.staging.ext_airports`
+-- External Table for Yellow tripdata
+CREATE OR REPLACE EXTERNAL TABLE `kestra-sandbox-486404.zoomcamp.yellow_tripdata_ext`
 (
-  IATA_CODE STRING,
-  AIRPORT STRING,
-  CITY STRING,
-  STATE STRING,
-  COUNTRY STRING,
-  LATITUDE FLOAT64,
-  LONGITUDE FLOAT64
+  VendorID STRING,
+  tpep_pickup_datetime TIMESTAMP,
+  tpep_dropoff_datetime TIMESTAMP,
+  passenger_count INT64,
+  trip_distance NUMERIC,
+  RatecodeID STRING,
+  store_and_fwd_flag STRING,
+  PULocationID STRING,
+  DOLocationID STRING,
+  payment_type INTEGER,
+  fare_amount NUMERIC,
+  extra NUMERIC,
+  mta_tax NUMERIC,
+  tip_amount NUMERIC,
+  tolls_amount NUMERIC,
+  improvement_surcharge NUMERIC,
+  total_amount NUMERIC,
+  congestion_surcharge NUMERIC
 )
 OPTIONS (
   format = 'CSV',
-  uris = ['gs://kestra-zoomcamp-adil-demo/raw/flights/airports.csv'],
-  skip_leading_rows = 1
+  uris = [
+        'gs://kestra-zoomcamp-adil-demo/yellow_tripdata_2019-*.csv',
+        'gs://kestra-zoomcamp-adil-demo/yellow_tripdata_2020-*.csv'
+        ],
+  skip_leading_rows = 1,
+  ignore_unknown_values = TRUE
 );
 
--- External Table for Flights (The main fact source)
-CREATE OR REPLACE EXTERNAL TABLE `kestra-sandbox-486404.staging.ext_flights`
+-- External Table for FHV (For-Hire Vehicle) tripdata
+CREATE OR REPLACE EXTERNAL TABLE `kestra-sandbox-486404.zoomcamp.fhv_tripdata_2019_ext`
 (
-  YEAR INT64, MONTH INT64, DAY INT64, DAY_OF_WEEK INT64,
-  AIRLINE STRING, FLIGHT_NUMBER INT64, TAIL_NUMBER STRING,
-  ORIGIN_AIRPORT STRING, DESTINATION_AIRPORT STRING,
-  SCHEDULED_DEPARTURE INT64, DEPARTURE_TIME INT64, DEPARTURE_DELAY INT64,
-  TAXI_OUT INT64, WHEELS_OFF INT64, SCHEDULED_TIME INT64,
-  ELAPSED_TIME INT64, AIR_TIME INT64, DISTANCE INT64,
-  WHEELS_ON INT64, TAXI_IN INT64, SCHEDULED_ARRIVAL INT64,
-  ARRIVAL_TIME INT64, ARRIVAL_DELAY INT64, DIVERTED INT64,
-  CANCELLED INT64, CANCELLATION_REASON STRING,
-  AIR_SYSTEM_DELAY INT64, SECURITY_DELAY INT64, AIRLINE_DELAY INT64,
-  LATE_AIRCRAFT_DELAY INT64, WEATHER_DELAY INT64
+  distpatching_base_num STRING,
+  pickup_datetime TIMESTAMP,
+  dropoff_datetime TIMESTAMP,
+  PULocationID INTEGER,
+  DOLocationID INTEGER,
+  SR_Flag STRING,
+  Affiliated_base_number STRING
 )
 OPTIONS (
   format = 'CSV',
-  uris = ['gs://kestra-zoomcamp-adil-demo/raw/flights/flights.csv'],
-  skip_leading_rows = 1
+  uris = ['gs://kestra-zoomcamp-adil-demo/fhv_tripdata_2019-*.csv'],
+  skip_leading_rows = 1,
+  ignore_unknown_values = TRUE
 );
 ```
-**Step 5: Run the Transformation Pipeline**
+**Example of BigQuery external table preview**
+
+![Example of BigQuery external table preview](images/big_query_external_table.png)
+
+2. **Native Tables (Optional/Performance)**: If you prefer better performance for dbt runs, you can materialize the external tables as native BigQuery tables:
+
+```sql
+-- Native Table for Green tripdata
+CREATE TABLE IF NOT EXISTS `kestra-sandbox-486404.zoomcamp.green_tripdata`
+(
+  unique_row_id BYTES OPTIONS (description = 'A unique identifier for the trip, generated by hashing key trip attributes.'),
+  filename STRING OPTIONS (description = 'The source filename from which the trip data was loaded.'),
+  VendorID STRING OPTIONS (description = 'A code indicating the LPEP provider that provided the record.'),
+  lpep_pickup_datetime TIMESTAMP OPTIONS (description = 'The date and time when the meter was engaged'),
+  lpep_dropoff_datetime TIMESTAMP OPTIONS (description = 'The date and time when the meter was disengaged'),
+  store_and_fwd_flag STRING OPTIONS (description = 'Store and forward flag'),
+  RatecodeID STRING OPTIONS (description = 'The final rate code in effect at the end of the trip.'),
+  PULocationID STRING OPTIONS (description = 'Pickup Taxi Zone'),
+  DOLocationID STRING OPTIONS (description = 'Dropoff Taxi Zone'),
+  passenger_count INT64 OPTIONS (description = 'The number of passengers in the vehicle'),
+  trip_distance NUMERIC OPTIONS (description = 'Trip distance in miles'),
+  fare_amount NUMERIC OPTIONS (description = 'Fare amount'),
+  extra NUMERIC OPTIONS (description = 'Extra charges'),
+  mta_tax NUMERIC OPTIONS (description = 'MTA tax'),
+  tip_amount NUMERIC OPTIONS (description = 'Tip amount'),
+  tolls_amount NUMERIC OPTIONS (description = 'Tolls amount'),
+  ehail_fee NUMERIC OPTIONS (description = 'E-hail fee'),
+  improvement_surcharge NUMERIC OPTIONS (description = 'Improvement surcharge'),
+  total_amount NUMERIC OPTIONS (description = 'Total amount'),
+  payment_type INT64 OPTIONS (description = 'Payment method code'),
+  trip_type STRING OPTIONS (description = 'Trip type (1=street-hail, 2=dispatch)'),
+  congestion_surcharge NUMERIC OPTIONS (description = 'Congestion surcharge')
+)
+PARTITION BY DATE(lpep_pickup_datetime);
+
+-- Native Table for Yellow tripdata
+CREATE TABLE IF NOT EXISTS `kestra-sandbox-486404.zoomcamp.yellow_tripdata`
+(
+  unique_row_id BYTES OPTIONS (description = 'A unique identifier for the trip, generated by hashing key trip attributes.'),
+  filename STRING OPTIONS (description = 'The source filename from which the trip data was loaded.'),
+  VendorID STRING OPTIONS (description = 'A code indicating the LPEP provider that provided the record.'),
+  tpep_pickup_datetime TIMESTAMP OPTIONS (description = 'The date and time when the meter was engaged'),
+  tpep_dropoff_datetime TIMESTAMP OPTIONS (description = 'The date and time when the meter was disengaged'),
+  passenger_count INT64 OPTIONS (description = 'The number of passengers in the vehicle.'),
+  trip_distance NUMERIC OPTIONS (description = 'The elapsed trip distance in miles reported by the taximeter.'),
+  RatecodeID STRING OPTIONS (description = 'The final rate code in effect at the end of the trip.'),
+  store_and_fwd_flag STRING OPTIONS (description = 'Store and forward flag'),
+  PULocationID STRING OPTIONS (description = 'Pickup Taxi Zone'),
+  DOLocationID STRING OPTIONS (description = 'Dropoff Taxi Zone'),
+  payment_type INT64 OPTIONS (description = 'Payment method code'),
+  fare_amount NUMERIC OPTIONS (description = 'Fare amount'),
+  extra NUMERIC OPTIONS (description = 'Extra charges'),
+  mta_tax NUMERIC OPTIONS (description = 'MTA tax'),
+  tip_amount NUMERIC OPTIONS (description = 'Tip amount'),
+  tolls_amount NUMERIC OPTIONS (description = 'Tolls amount'),
+  improvement_surcharge NUMERIC OPTIONS (description = 'Improvement surcharge'),
+  total_amount NUMERIC OPTIONS (description = 'Total amount'),
+  congestion_surcharge NUMERIC OPTIONS (description = 'Congestion surcharge')
+)
+PARTITION BY DATE(tpep_pickup_datetime);
+
+-- Native Table for FHV tripdata
+CREATE TABLE IF NOT EXISTS `kestra-sandbox-486404.zoomcamp.fhv_tripdata`
+(
+  unique_row_id BYTES OPTIONS (description = 'A unique identifier for the trip, generated by hashing key trip attributes.'),
+  filename STRING OPTIONS (description = 'The source filename from which the trip data was loaded.'),
+  dispatching_base_num STRING OPTIONS (description = 'The TLC Base License Number of the base that dispatched the trip'),
+  pickup_datetime TIMESTAMP OPTIONS (description = 'The date and time when the trip started'),
+  dropOff_datetime TIMESTAMP OPTIONS (description = 'The date and time when the trip ended'),
+  PUlocationID INT64 OPTIONS (description = 'Pickup Taxi Zone'),
+  DOlocationID INT64 OPTIONS (description = 'Dropoff Taxi Zone'),
+  SR_Flag STRING OPTIONS (description = 'Indicates if the trip was a shared ride'),
+  Affiliated_base_number STRING OPTIONS (description = 'The TLC Base License Number of the affiliated base')
+)
+PARTITION BY DATE(pickup_datetime)
+```
+
+**Example of BigQuery native table preview**
+
+![Example of BigQuery external table preview](images/big_query_native_table.png)
+
+3. Inserting data into native BigQuery tables **green_tripdata**, **yellow_tripdata**, **fhv_tripdata**
+
+```sql
+INSERT INTO `kestra-sandbox-486404.zoomcamp.green_tripdata`
+SELECT
+  TO_HEX(MD5(CONCAT(
+    IFNULL(CAST(VendorID AS STRING), ''),
+    IFNULL(CAST(lpep_pickup_datetime AS STRING), ''),
+    IFNULL(CAST(lpep_dropoff_datetime AS STRING), ''),
+    IFNULL(CAST(PULocationID AS STRING), ''),
+    IFNULL(CAST(DOLocationID AS STRING), '')
+  ))) AS unique_row_id,
+
+  NULL AS filename,
+
+  t.*
+FROM `kestra-sandbox-486404.zoomcamp.green_tripdata_ext` t;
+
+INSERT INTO `kestra-sandbox-486404.zoomcamp.yellow_tripdata`
+SELECT
+  TO_HEX(MD5(CONCAT(
+    IFNULL(CAST(VendorID AS STRING), ''),
+    IFNULL(CAST(tpep_pickup_datetime AS STRING), ''),
+    IFNULL(CAST(tpep_dropoff_datetime AS STRING), ''),
+    IFNULL(CAST(PULocationID AS STRING), ''),
+    IFNULL(CAST(DOLocationID AS STRING), '')
+  ))) AS unique_row_id,
+
+  NULL AS filename,
+
+  t.*
+FROM `kestra-sandbox-486404.zoomcamp.yellow_tripdata_ext` t;
+
+INSERT INTO `kestra-sandbox-486404.zoomcamp.fhv_tripdata`
+SELECT
+  TO_HEX(MD5(CONCAT(
+    IFNULL(CAST(dispatching_base_num AS STRING), ''),
+    IFNULL(CAST(pickup_datetime AS STRING), ''),
+    IFNULL(CAST(dropOff_datetime AS STRING), ''),
+    IFNULL(CAST(PUlocationID AS STRING), ''),
+    IFNULL(CAST(DOlocationID AS STRING), '')
+  ))) AS unique_row_id,
+
+  NULL AS filename,
+
+  t.*
+FROM `kestra-sandbox-486404.zoomcamp.fhv_tripdata_ext` t;
+```
+
+**Step 4: dbt Configuration & Execution**
 
 Now that the external tables are ready, execute the **Bruin** pipeline to perform data cleaning, partitioning, and modeling:
 
 ```bash
-bruin run pipeline
+# 1. Install dbt dependencies
+dbt deps
+
+# 2. Load seed files (taxi zones, payment types)
+dbt seed
+
+# 3. Build the entire pipeline (Production run)
+dbt build --vars 'is_test_run: false'
 ```
 
-This command will create the `stg_` (**Silver Layer**) and `fct_` (**Gold Layer**) tables based on the logic defined in the `pipeline/assets/` directory.
+**Data Lineage**
 
-**Step 6: Visualization**
+The data flow is transparent and manageable:
+![Data Lineage](images/bruin_lineage.png)
+
+**Step 5: Visualization**
 
 1. Open `US Flights Data 2015 Dashboard.pbix` in Power BI Desktop.
 2. Go to **Transform Data -> Data Source Settings**.
