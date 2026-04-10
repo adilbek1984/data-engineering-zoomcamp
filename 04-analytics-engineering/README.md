@@ -340,3 +340,89 @@ The data flow is transparent and manageable:
 
 **Getting Data from BigQuery Database**
 ![Getting Data from BigQuery Database](images/pbi_pq_getdata.png)
+
+## Homework
+
+### Question 3. Counting Records in `fct_monthly_zone_revenue`
+After running your dbt project, query the fct_monthly_zone_revenue model.
+
+What is the count of records in the fct_monthly_zone_revenue model?
+
+* 12,998
+* 14,120
+* **12,184**
+* 15,421
+
+```sql
+SELECT
+  COUNT(*) AS num_of_records,
+FROM `kestra-sandbox-486404.zoomcamp.fct_monthly_zone_revenue`;
+
+--Answer: 12,184
+```
+### Question 4. Best Performing Zone for Green Taxis (2020)
+Using the `fct_monthly_zone_revenue table`, find the pickup zone with the highest total revenue (`revenue_monthly_total_amount`) for Green taxi trips in 2020.
+
+Which zone had the highest revenue?
+
+* **East Harlem North**
+* Morningside Heights
+* East Harlem South
+* Washington Heights South
+
+```sql
+SELECT
+  MAX(revenue_monthly_total_amount) AS highest_total_revenue,
+  pickup_zone
+FROM `kestra-sandbox-486404.zoomcamp.fct_monthly_zone_revenue`
+WHERE
+  service_type = 'Green'
+  AND EXTRACT(YEAR FROM revenue_month) = 2020
+GROUP BY pickup_zone
+ORDER BY highest_total_revenue DESC
+LIMIT 1;
+
+--Answer: East Harlem North (434555.26)
+```
+### Question 5. Green Taxi Trip Counts (October 2019)
+Using the `fct_monthly_zone_revenue` table, what is the total number of trips (`total_monthly_trips`) for Green taxis in October 2019?
+
+* 500,234
+* 350,891
+* **384,624**
+* 421,509
+
+```sql
+SELECT
+  SUM(total_monthly_trips) AS total_monthly_trips,
+FROM `kestra-sandbox-486404.zoomcamp.fct_monthly_zone_revenue`
+WHERE
+  service_type = 'Green'
+  AND EXTRACT(YEAR FROM revenue_month) = 2019
+  AND EXTRACT(MONTH FROM revenue_month) = 10;
+
+--Answer: Total monthly trips 384,62
+```
+
+### Question 6. Build a Staging Model for FHV Data
+Create a staging model for the For-Hire Vehicle (FHV) trip data for 2019.
+
+1. Load the FHV trip data for 2019 into your data warehouse
+2. Create a staging model `stg_fhv_tripdata` with these requirements:
+  - Filter out records where `dispatching_base_num` IS NULL
+  - Rename fields to match your project's naming conventions (e.g., `PUlocationID` → `pickup_location_id`)
+
+What is the count of records in `stg_fhv_tripdata`?
+
+* 42,084,899
+* **43,244,693**
+* 22,998,722
+* 44,112,187
+
+```sql
+SELECT
+  COUNT(*) AS num_of_records
+FROM `kestra-sandbox-486404.zoomcamp.stg_fhv_tripdata`;
+
+--Answer: 43,244,693
+```
