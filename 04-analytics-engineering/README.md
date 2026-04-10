@@ -250,7 +250,7 @@ PARTITION BY DATE(pickup_datetime)
 
 **Example of BigQuery native table preview**
 
-![Example of BigQuery external table preview](images/big_query_native_table.png)
+![Example of BigQuery native table preview](images/big_query_native_table.png)
 
 3. Inserting data into native BigQuery tables **green_tripdata**, **yellow_tripdata**, **fhv_tripdata**
 
@@ -300,6 +300,9 @@ SELECT
   t.*
 FROM `kestra-sandbox-486404.zoomcamp.fhv_tripdata_ext` t;
 ```
+**Example of BigQuery native table with data**
+
+![Example of BigQuery native table with data](images/big_query_native_table_data.png)
 
 **Step 4: dbt Configuration & Execution**
 
