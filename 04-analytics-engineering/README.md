@@ -9,7 +9,7 @@ This week focuses on the **Transformation** layer of the ELT pipeline. Using **d
 ## 🏗️Architecture & Data Models
 The transformation process follows a structured **Medallion Architecture**.
 
-![Project Architecture](images/architecture_diagram.png)
+![Project Architecture](images/architecture_diagram.jpg)
 
 ## 🛠️ Technologies & Infrastructure
 * **Cloud:** Data Lake for raw file storage (Google Cloud Storage, GCS), Data Warehouse (Google BigQuery)
