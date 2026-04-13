@@ -19,14 +19,14 @@ SELECT
     COUNT(*) as total_winter_flights,
     -- Средняя задержка прилета
     ROUND(AVG(arrival_delay), 2) as avg_arrival_delay,
-    -- Суммарная задержка из-за погоды в минутах
-    SUM(external_caused_delay) as total_weather_system_delay,
+    -- Суммарная задержка из-за погоды и авиасистемы (внешние факторы)
+    SUM(weather_delay + air_system_delay) as total_weather_system_delay,
     -- Процент рейсов с задержкой более 30 минут
     ROUND(COUNTIF(arrival_delay > 30) / COUNT(*) * 100, 2) as heavy_delay_probability
 FROM `kestra-sandbox-486404.analytics.fct_flights`
 WHERE season = 'Winter'
-  AND is_cancelled = 0 -- Берем только те, что вылетели
+  AND is_cancelled = 0 
 GROUP BY 1, 2, 3
-HAVING total_winter_flights > 100 -- Убираем редкие рейсы для чистоты статистики
+HAVING total_winter_flights > 100 
 ORDER BY avg_arrival_delay DESC
-LIMIT 20
+LIMIT 30
