@@ -407,7 +407,7 @@ The data flow is transparent and manageable:
 
 1. Open `US Flights Data 2015 Dashboard.pbix` in Power BI Desktop.
 2. Go to **Transform Data -> Data Source Settings**.
-3. Change the Project ID to your own (e.g., `kestra-sandbox-486404`), connect to the `zoomcamp` dataset and click Refresh .
+3. Change the Project ID to your own (e.g., `kestra-sandbox-486404`), open the `zoomcamp` dataset, select `fct_monthly_zone_revenue` table and click Ok .
 
 **Getting Data from BigQuery Database**
 ![Getting Data from BigQuery Database](images/power_query_get_data.png)
