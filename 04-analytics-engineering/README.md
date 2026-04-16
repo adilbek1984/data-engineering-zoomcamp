@@ -336,10 +336,10 @@ The data flow is transparent and manageable:
 
 1. Open `US Flights Data 2015 Dashboard.pbix` in Power BI Desktop.
 2. Go to **Transform Data -> Data Source Settings**.
-3. Change the Project ID to your own, connect to the `analytics` dataset and click Refresh (e.g., `kestra-sandbox-486404`).
+3. Change the Project ID to your own (e.g., `kestra-sandbox-486404`), connect to the `zoomcamp` dataset and click Refresh .
 
 **Getting Data from BigQuery Database**
-![Getting Data from BigQuery Database](images/pbi_pq_getdata.png)
+![Getting Data from BigQuery Database](images/power_query_get_data.png)
 
 ## Homework
 
