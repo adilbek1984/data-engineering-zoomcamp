@@ -92,6 +92,7 @@ RETURN
 
 ![Data Model](images/pbi_data_model.png)
 
+
 **1st dashboard:**
 * **KPIs**: Total Revenue, Total Trips, Avg Ticket, Avg Tip Percentage.
 * **Visuals**: To 10 Revenue Generating Zones, Bottom 10 Zones by Revenue, Service Type Market Share by Trips, Revenue Dynamics by Service Type, Monthly Revenue Trend.
@@ -104,6 +105,7 @@ RETURN
 **Dashbord #1**
 
 ![Dashboard #1](images/dashboard_1.png)
+
 
 **2nd dashboard:**
 * **Visuals**: Zone Efficiency: Average Fare vs. Trip Distance, Top 20 Pickup Zones by Total Trips.
