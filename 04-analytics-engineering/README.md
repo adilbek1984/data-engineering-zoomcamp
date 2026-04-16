@@ -53,10 +53,13 @@ Final analytical models optimized for querying and reporting.
 
 **Data Modeling & DAX**
 The final data is served through two specialized dashboards in **Power BI**.
-* **Star Schema:** `fct_monthly_zone_revenue` linked to `Calendar`
+* **Star Schema:** `fct_monthly_zone_revenue` linked to `Calendar` table with built-in logic to filter out future-dated anomalies (e.g., Year 2090).
 * **Key Measures:** 
-    * `Avg Arrival Delay`: Calculates average for values `> 0` to ensure accuracy
-    * `OTP %`: On-Time Performance (flights with < 15 min delay).
+    * **Total Revenue & Total Tips**: Core financial aggregations used to track gross volume and gratuity trends across different service types.
+    * **Avg Ticket**: A key performance indicator (KPI) calculating the average fare per trip to monitor unit economics.
+    * **Avg Distance**: Used in combination with financial metrics to analyze the relationship between trip length and profitability.
+    * **Avg Tip Percentage**: A sophisticated DAX measure (`DIVIDE` of Tips by Fare) used to evaluate service quality and passenger tipping behavior by zone.
+    * **Max Revenue Point**: An advanced visualization technique using `MAXX` and `ALLSELECTED` to dynamically highlight historical records on trend charts.
 
 **Creating Calendar calculated table:**
 ```dax
@@ -92,7 +95,11 @@ RETURN
 **1st dashboard:**
 * **KPIs**: Total Revenue, Total Trips, Avg Ticket, Avg Tip Percentage.
 * **Visuals**: To 10 Revenue Generating Zones, Bottom 10 Zones by Revenue, Service Type Market Share by Trips, Revenue Dynamics by Service Type, Monthly Revenue Trend.
-* **Insight**: Validated ~1M delayed flights (~18%), matching 2015 US aviation benchmarks.
+* **Insight**:
+  * **Geographic Revenue Concentration**: The comparison between Top 10 and Bottom 10 zones identifies key revenue hubs (e.g., airports and Manhattan) versus underperforming areas. This highlights where the fleet is most productive and where market presence is inefficient.
+  * **Market Share & Fleet Utilization**: The Service Type breakdown reveals the dominance of Yellow vs. Green taxis, allowing for strategic decisions on fleet expansion or reduction based on actual trip volume.
+  * **Growth & Recovery Trends**: The Monthly Revenue Trend with the Max Revenue Point marker allows stakeholders to instantly compare current performance against historical records, identifying seasonal recovery patterns or the impact of external market shifts.
+
 
 **Dashbord #1**
 
@@ -100,7 +107,10 @@ RETURN
 
 **2nd dashboard:**
 * **Visuals**: Zone Efficiency: Average Fare vs. Trip Distance, Top 20 Pickup Zones by Total Trips.
-* **Insight**: Discovered the "Snowball Effect" — delays peak between 5 PM - 9 PM and at 3 AM due to cumulative schedule drift.
+* **Insight**:
+  * **High-Yield Zone Identification**: The Scatter Chart isolates "outlier" zones with high average fares but low travel distances—representing the most profitable areas for drivers.
+  * **Operational Efficiency Gap**: The trend line visually separates high-margin zones (above the line) from low-margin zones (below the line), pinpointing areas where travel time and distance are not being adequately compensated by current fare structures.
+  * **Service Quality Correlation**: By mapping Avg Tip Percentage across zones, the dashboard identifies correlations between passenger demographics, trip costs, and tipping behavior, providing a proxy for customer satisfaction and service value.
 
 **Dashbord #2**
 ![Dashbord #2](images/dashboard_2.png)
