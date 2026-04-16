@@ -19,6 +19,7 @@ The transformation process follows a structured **Medallion Architecture**.
 * **Source:** [NYC TLC Trip Record Data](https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page)
 
 ---
+## 🏗️ Data Pipeline Stages
 
 ### 1. Staging Layer (`staging/`)
 Raw data is cleaned, fields are renamed for consistency, and data types are cast.
@@ -45,6 +46,64 @@ Final analytical models optimized for querying and reporting.
 * `dim_zones.sql`: Dimensional table for taxi zones..
 * `fct_trips.sql`: The main fact table containing all processed trip records.
 * `fct_monthly_zone_revenue.sql`: Aggregated reporting table for financial analysis.
+
+---
+
+## 📊 Serving: Power BI Dashboards
+
+**Data Modeling & DAX**
+The final data is served through two specialized dashboards in **Power BI**.
+* **Star Schema:** `fct_monthly_zone_revenue` linked to `Calendar`
+* **Key Measures:** 
+    * `Avg Arrival Delay`: Calculates average for values `> 0` to ensure accuracy
+    * `OTP %`: On-Time Performance (flights with < 15 min delay).
+
+**Creating Calendar calculated table:**
+```dax
+Calendar = 
+-- Find the minimum and maximum date in your data
+VAR MinDate = MIN('fct_monthly_zone_revenue'[revenue_month])
+-- We limit the calendar to today, so as not to go into 2090
+VAR MaxDate = IF(
+    MAX('fct_monthly_zone_revenue'[revenue_month]) > TODAY(), 
+    TODAY(), 
+    MAX('fct_monthly_zone_revenue'[revenue_month])
+)
+-- Creating a basic list of dates
+VAR BaseCalendar = CALENDAR(MinDate, MaxDate)
+
+RETURN
+    ADDCOLUMNS (
+        BaseCalendar,
+        "Year", YEAR ( [Date] ),
+        "Month Number", MONTH ( [Date] ),
+        "Month Name", FORMAT ( [Date], "MMMM" ),
+        "Month Short", FORMAT ( [Date], "MMM" ),
+        "Year Month Key", FORMAT ( [Date], "YYYY-MM" ),
+        "Year Month", FORMAT ( [Date], "MMM YYYY" ),
+        "Quarter", "Q" & FORMAT ( [Date], "Q" )
+    )
+```
+
+**Creating a data model and relationships in Model View:**
+
+![Data Model](images/pbi_data_model.png)
+
+**1st dashboard:**
+* **KPIs**: Total Revenue, Total Trips, Avg Ticket, Avg Tip Percentage.
+* **Visuals**: To 10 Revenue Generating Zones, Bottom 10 Zones by Revenue, Service Type Market Share by Trips, Revenue Dynamics by Service Type, Monthly Revenue Trend.
+* **Insight**: Validated ~1M delayed flights (~18%), matching 2015 US aviation benchmarks.
+
+**Dashbord #1**
+
+![Dashboard #1](pbi_report/dashboard_1.png)
+
+**2nd dashboard:**
+* **Visuals**: Zone Efficiency: Average Fare vs. Trip Distance, Top 20 Pickup Zones by Total Trips.
+* **Insight**: Discovered the "Snowball Effect" — delays peak between 5 PM - 9 PM and at 3 AM due to cumulative schedule drift.
+
+**Dashbord #2**
+![Dashbord #2](pbi_report/dashboard_2.png)
 
 ---
 
