@@ -96,14 +96,14 @@ RETURN
 
 **Dashbord #1**
 
-![Dashboard #1](pbi_report/dashboard_1.png)
+![Dashboard #1](images/dashboard_1.png)
 
 **2nd dashboard:**
 * **Visuals**: Zone Efficiency: Average Fare vs. Trip Distance, Top 20 Pickup Zones by Total Trips.
 * **Insight**: Discovered the "Snowball Effect" — delays peak between 5 PM - 9 PM and at 3 AM due to cumulative schedule drift.
 
 **Dashbord #2**
-![Dashbord #2](pbi_report/dashboard_2.png)
+![Dashbord #2](images/dashboard_2.png)
 
 ---
 
